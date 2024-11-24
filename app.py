@@ -70,7 +70,7 @@ if "xyz_content" not in st.session_state:
     st.session_state["xyz_content"] = None
 
 # Streamlit App
-st.title("SMILES Visualization and Analysis")
+st.title("Quick SMILES Visualization and Analysis")
 
 # SMILES input box
 smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
@@ -139,7 +139,8 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     pubchem_data = fetch_pubchem_data(st.session_state["smiles"])
     if "Error" not in pubchem_data:
         st.subheader("PubChem Data")
-        st.json(pubchem_data)  # Display PubChem data in JSON format
+   #     st.json(pubchem_data)  # Display PubChem data in JSON format
+        pubchem_df = pd.DataFrame(list(pubchem_data.items()), columns=["Property", "Value"])
+        st.table(pubchem_df)  # Display as a nice table
     else:
         st.warning(pubchem_data["Error"])
-
