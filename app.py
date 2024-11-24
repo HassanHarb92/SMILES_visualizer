@@ -73,7 +73,10 @@ if "xyz_content" not in st.session_state:
 st.title("Quick SMILES Visualization and Analysis")
 
 # SMILES input box
-smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
+default_smiles = "Oc1ccccc1"  # Phenol
+smiles_input = st.text_input("Enter a SMILES string:", st.session_state.get("smiles", default_smiles))
+
+#smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
 
 # Visualization style options
 style_options = {
