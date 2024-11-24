@@ -49,8 +49,8 @@ smiles = st.text_input("Enter a SMILES string:", "Oc1ccccc1")  # Default is phen
 
 # Visualization style options
 style_options = {
-    'Stick': {'stick': {}},
     'Ball and Stick': {'stick': {}, 'sphere': {'radius': 0.5}},
+    'Stick': {'stick': {}},
     'Spacefill': {'sphere': {}}
 }
 selected_style = st.radio('Select visualization style', list(style_options.keys()))
@@ -61,29 +61,32 @@ if st.button("Visualize"):
     if mol is None:
         st.error("Invalid SMILES string. Please try again.")
     else:
-        # 2D Image
-        st.subheader("2D Structure")
-        img = Draw.MolToImage(mol, size=(300, 300))
-        st.image(img, caption="2D Structure")
+        # Columns for 2D and 3D visualization
+        col1, col2 = st.columns(2)
 
-        # Generate 3D XYZ content from SMILES
-        st.subheader("3D Structure")
-        xyz_content = smiles_to_xyz(smiles)
-        if xyz_content:
-            scale = 1
-            width = int(640.0 * scale)
-            height = int(480.0 * scale)
+        with col1:
+            st.subheader("2D Structure")
+            img = Draw.MolToImage(mol, size=(300, 300))
+            st.image(img, caption="2D Structure")
 
-            # Visualize the 3D structure using py3Dmol
-            xyzview = py3Dmol.view(width=width, height=height)
-            xyzview.addModel(xyz_content, 'xyz')
-            xyzview.setStyle(style_options[selected_style])  # Use selected visualization style
-            xyzview.zoomTo()
+        with col2:
+            st.subheader("3D Structure")
+            xyz_content = smiles_to_xyz(smiles)
+            if xyz_content:
+                scale = 1
+                width = int(320.0 * scale)
+                height = int(300.0 * scale)
 
-            # Display the 3D visualization in Streamlit
-            st.components.v1.html(xyzview._make_html(), width=width, height=height, scrolling=False)
-        else:
-            st.error("Failed to generate 3D structure.")
+                # Visualize the 3D structure using py3Dmol
+                xyzview = py3Dmol.view(width=width, height=height)
+                xyzview.addModel(xyz_content, 'xyz')
+                xyzview.setStyle(style_options[selected_style])  # Use selected visualization style
+                xyzview.zoomTo()
+
+                # Display the 3D visualization in Streamlit
+                st.components.v1.html(xyzview._make_html(), width=width, height=height, scrolling=False)
+            else:
+                st.error("Failed to generate 3D structure.")
 
         # Molecular Properties
         st.subheader("Molecular Properties")
