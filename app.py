@@ -55,8 +55,8 @@ smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"
 
 # Visualization style options
 style_options = {
-    'Stick': {'stick': {}},
     'Ball and Stick': {'stick': {}, 'sphere': {'radius': 0.5}},
+    'Stick': {'stick': {}},
     'Spacefill': {'sphere': {}}
 }
 selected_style = st.radio('Select visualization style', list(style_options.keys()))
