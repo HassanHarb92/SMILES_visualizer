@@ -3,6 +3,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Descriptors
 import py3Dmol
 import pandas as pd
+import requests
 
 # Function to convert SMILES to 3D XYZ format
 def smiles_to_xyz(smiles):
@@ -41,6 +42,27 @@ def calculate_properties(smiles):
     }
     return properties
 
+# Function to fetch PubChem data
+def fetch_pubchem_data(smiles):
+    try:
+        # Convert SMILES to PubChem CID
+        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/property/IUPACName,MolecularFormula,CanonicalSMILES,InChIKey/JSON"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise error for bad requests
+        
+        data = response.json()
+        properties = data["PropertyTable"]["Properties"][0]
+        
+        pubchem_info = {
+            "IUPAC Name": properties.get("IUPACName", "N/A"),
+            "Molecular Formula": properties.get("MolecularFormula", "N/A"),
+            "Canonical SMILES": properties.get("CanonicalSMILES", "N/A"),
+            "InChIKey": properties.get("InChIKey", "N/A"),
+        }
+        return pubchem_info
+    except Exception as e:
+        return {"Error": f"Failed to fetch data: {e}"}
+
 # Initialize session state for SMILES and .xyz content
 if "smiles" not in st.session_state:
     st.session_state["smiles"] = ""
@@ -48,7 +70,7 @@ if "xyz_content" not in st.session_state:
     st.session_state["xyz_content"] = None
 
 # Streamlit App
-st.title("SMILES Visualization")
+st.title("SMILES Visualization and Analysis")
 
 # SMILES input box
 smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
@@ -112,4 +134,12 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
         st.table(df)
     else:
         st.error("Failed to calculate molecular properties.")
+
+    # PubChem Data
+    pubchem_data = fetch_pubchem_data(st.session_state["smiles"])
+    if "Error" not in pubchem_data:
+        st.subheader("PubChem Data")
+        st.json(pubchem_data)  # Display PubChem data in JSON format
+    else:
+        st.warning(pubchem_data["Error"])
 
