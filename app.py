@@ -139,7 +139,6 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     pubchem_data = fetch_pubchem_data(st.session_state["smiles"])
     if "Error" not in pubchem_data:
         st.subheader("PubChem Data")
-   #     st.json(pubchem_data)  # Display PubChem data in JSON format
         pubchem_df = pd.DataFrame(list(pubchem_data.items()), columns=["Property", "Value"])
         st.table(pubchem_df)  # Display as a nice table
     else:
