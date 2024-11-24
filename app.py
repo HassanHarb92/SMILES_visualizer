@@ -42,7 +42,7 @@ def calculate_properties(smiles):
     return properties
 
 # Streamlit App
-st.title("SMILES Visualization and Analysis")
+st.title("SMILES Visualization")
 
 # SMILES input box
 smiles = st.text_input("Enter a SMILES string:", "Oc1ccccc1")  # Default is phenol
