@@ -41,69 +41,75 @@ def calculate_properties(smiles):
     }
     return properties
 
+# Initialize session state for SMILES and .xyz content
+if "smiles" not in st.session_state:
+    st.session_state["smiles"] = ""
+if "xyz_content" not in st.session_state:
+    st.session_state["xyz_content"] = None
+
 # Streamlit App
 st.title("SMILES Visualization")
 
 # SMILES input box
-smiles = st.text_input("Enter a SMILES string:", "Oc1ccccc1")  # Default is phenol
+smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
 
 # Visualization style options
 style_options = {
-    'Ball and Stick': {'stick': {}, 'sphere': {'radius': 0.5}},
     'Stick': {'stick': {}},
+    'Ball and Stick': {'stick': {}, 'sphere': {'radius': 0.5}},
     'Spacefill': {'sphere': {}}
 }
 selected_style = st.radio('Select visualization style', list(style_options.keys()))
 
 # Button to process and visualize the SMILES
-# Button to process and visualize the SMILES
 if st.button("Visualize"):
-    mol = Chem.MolFromSmiles(smiles)
+    mol = Chem.MolFromSmiles(smiles_input)
     if mol is None:
         st.error("Invalid SMILES string. Please try again.")
     else:
-        # Columns for 2D and 3D visualization
-        col1, col2 = st.columns(2)
+        st.session_state["smiles"] = smiles_input  # Save SMILES in session state
+        st.session_state["xyz_content"] = smiles_to_xyz(smiles_input)  # Save .xyz content
 
-        with col1:
-            st.subheader("2D Structure")
-            img = Draw.MolToImage(mol, size=(300, 300))
-            st.image(img, caption="2D Structure")
+# Only proceed if SMILES and .xyz content are valid
+if st.session_state["smiles"] and st.session_state["xyz_content"]:
+    mol = Chem.MolFromSmiles(st.session_state["smiles"])
+    col1, col2 = st.columns(2)
 
-        with col2:
-            st.subheader("3D Structure")
-            xyz_content = smiles_to_xyz(smiles)
-            if xyz_content:
-                scale = 1
-                width = int(320.0 * scale)
-                height = int(300.0 * scale)
+    with col1:
+        st.subheader("2D Structure")
+        img = Draw.MolToImage(mol, size=(300, 300))
+        st.image(img, caption="2D Structure")
 
-                # Visualize the 3D structure using py3Dmol
-                xyzview = py3Dmol.view(width=width, height=height)
-                xyzview.addModel(xyz_content, 'xyz')
-                xyzview.setStyle(style_options[selected_style])  # Use selected visualization style
-                xyzview.zoomTo()
+    with col2:
+        st.subheader("3D Structure")
+        xyz_content = st.session_state["xyz_content"]
+        scale = 1
+        width = int(320.0 * scale)
+        height = int(300.0 * scale)
 
-                # Display the 3D visualization in Streamlit
-                st.components.v1.html(xyzview._make_html(), width=width, height=height, scrolling=False)
-            else:
-                st.error("Failed to generate 3D structure.")
+        # Visualize the 3D structure using py3Dmol
+        xyzview = py3Dmol.view(width=width, height=height)
+        xyzview.addModel(xyz_content, 'xyz')
+        xyzview.setStyle(style_options[selected_style])  # Use selected visualization style
+        xyzview.zoomTo()
 
-        # Add the download button for the .xyz file
-        if xyz_content:
-            st.download_button(
-                label="Download .xyz file",
-                data=xyz_content,
-                file_name="molecule.xyz",
-                mime="text/plain"
-            )
+        # Display the 3D visualization in Streamlit
+        st.components.v1.html(xyzview._make_html(), width=width, height=height, scrolling=False)
 
-        # Molecular Properties
-        st.subheader("Molecular Properties")
-        properties = calculate_properties(smiles)
-        if properties:
-            df = pd.DataFrame(list(properties.items()), columns=["Property", "Value"])
-            st.table(df)
-        else:
-            st.error("Failed to calculate molecular properties.")
+    # Add the download button for the .xyz file
+    st.download_button(
+        label="Download .xyz file",
+        data=xyz_content,
+        file_name="molecule.xyz",
+        mime="text/plain"
+    )
+
+    # Molecular Properties
+    st.subheader("Molecular Properties")
+    properties = calculate_properties(st.session_state["smiles"])
+    if properties:
+        df = pd.DataFrame(list(properties.items()), columns=["Property", "Value"])
+        st.table(df)
+    else:
+        st.error("Failed to calculate molecular properties.")
 
