@@ -56,6 +56,7 @@ style_options = {
 selected_style = st.radio('Select visualization style', list(style_options.keys()))
 
 # Button to process and visualize the SMILES
+# Button to process and visualize the SMILES
 if st.button("Visualize"):
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
@@ -87,6 +88,15 @@ if st.button("Visualize"):
                 st.components.v1.html(xyzview._make_html(), width=width, height=height, scrolling=False)
             else:
                 st.error("Failed to generate 3D structure.")
+
+        # Add the download button for the .xyz file
+        if xyz_content:
+            st.download_button(
+                label="Download .xyz file",
+                data=xyz_content,
+                file_name="molecule.xyz",
+                mime="text/plain"
+            )
 
         # Molecular Properties
         st.subheader("Molecular Properties")
