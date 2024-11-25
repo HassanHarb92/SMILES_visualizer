@@ -153,6 +153,7 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     properties = calculate_properties(st.session_state["smiles"])
     if properties:
         df = pd.DataFrame(list(properties.items()), columns=["Property", "Value"])
+        df["Value"] = df["Value"].astype(str)  # Convert all values to strings
         st.table(df)
     else:
         st.error("Failed to calculate molecular properties.")
@@ -162,6 +163,7 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     if drug_likeness:
         st.subheader("Drug-Likeness (Lipinski's Rule of Five)")
         df_drug = pd.DataFrame(list(drug_likeness.items()), columns=["Property", "Value"])
+        df_drug["Value"] = df_drug["Value"].astype(str)  # Convert all values to strings
         st.table(df_drug)
 
     # Toxicity Prediction
@@ -169,6 +171,7 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     if "Error" not in toxicity_data:
         st.subheader("Toxicity Prediction")
         df_toxicity = pd.DataFrame(list(toxicity_data.items()), columns=["Property", "Value"])
+        df_toxicity["Value"] = df_toxicity["Value"].astype(str)  # Convert all values to strings
         st.table(df_toxicity)
     else:
         st.warning(toxicity_data["Error"])
