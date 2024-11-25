@@ -42,26 +42,47 @@ def calculate_properties(smiles):
     }
     return properties
 
-# Function to fetch PubChem data
-def fetch_pubchem_data(smiles):
+# Function to evaluate drug-likeness (Lipinski's Rule of Five)
+def evaluate_drug_likeness(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None
+    properties = {
+        "Molecular Weight": Descriptors.MolWt(mol),
+        "LogP": Descriptors.MolLogP(mol),
+        "H-bond Donors": Descriptors.NumHDonors(mol),
+        "H-bond Acceptors": Descriptors.NumHAcceptors(mol)
+    }
+    # Evaluate Lipinski's Rule of Five
+    lipinski = {
+        "Rule of Five Pass": all([
+            properties["Molecular Weight"] <= 500,
+            properties["LogP"] <= 5,
+            properties["H-bond Donors"] <= 5,
+            properties["H-bond Acceptors"] <= 10
+        ]),
+        **properties
+    }
+    return lipinski
+
+# Function to fetch toxicity prediction from ProTox-II API
+def predict_toxicity(smiles):
     try:
-        # Convert SMILES to PubChem CID
-        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/property/IUPACName,MolecularFormula,CanonicalSMILES,InChIKey/JSON"
-        response = requests.get(url)
-        response.raise_for_status()  # Raise error for bad requests
-        
+        url = "https://tox-new.charite.de/protox_II/api"  # Replace with actual API endpoint
+        params = {"smiles": smiles}
+        response = requests.post(url, json=params)
+        response.raise_for_status()
         data = response.json()
-        properties = data["PropertyTable"]["Properties"][0]
-        
-        pubchem_info = {
-            "IUPAC Name": properties.get("IUPACName", "N/A"),
-            "Molecular Formula": properties.get("MolecularFormula", "N/A"),
-            "Canonical SMILES": properties.get("CanonicalSMILES", "N/A"),
-            "InChIKey": properties.get("InChIKey", "N/A"),
+
+        # Extract relevant toxicity predictions
+        toxicity = {
+            "LD50 (mg/kg)": data.get("ld50", "N/A"),
+            "Toxicity Class": data.get("toxicity_class", "N/A"),
+            "Toxicity Prediction": data.get("toxicity_prediction", "N/A"),
         }
-        return pubchem_info
+        return toxicity
     except Exception as e:
-        return {"Error": f"Failed to fetch data: {e}"}
+        return {"Error": f"Failed to fetch toxicity data: {e}"}
 
 # Initialize session state for SMILES and .xyz content
 if "smiles" not in st.session_state:
@@ -70,13 +91,11 @@ if "xyz_content" not in st.session_state:
     st.session_state["xyz_content"] = None
 
 # Streamlit App
-st.title("Quick SMILES Visualization and Analysis")
+st.title("SMILES Visualization, Drug-Likeness, and Toxicity Prediction")
 
-# SMILES input box
-default_smiles = "Oc1ccccc1"  # Phenol
+# Default molecule (Phenol)
+default_smiles = "Oc1ccccc1"
 smiles_input = st.text_input("Enter a SMILES string:", st.session_state.get("smiles", default_smiles))
-
-#smiles_input = st.text_input("Enter a SMILES string:", st.session_state["smiles"])
 
 # Visualization style options
 style_options = {
@@ -138,11 +157,19 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     else:
         st.error("Failed to calculate molecular properties.")
 
-    # PubChem Data
-    pubchem_data = fetch_pubchem_data(st.session_state["smiles"])
-    if "Error" not in pubchem_data:
-        st.subheader("PubChem Data")
-        pubchem_df = pd.DataFrame(list(pubchem_data.items()), columns=["Property", "Value"])
-        st.table(pubchem_df)  # Display as a nice table
+    # Drug-Likeness Evaluation
+    drug_likeness = evaluate_drug_likeness(st.session_state["smiles"])
+    if drug_likeness:
+        st.subheader("Drug-Likeness (Lipinski's Rule of Five)")
+        df_drug = pd.DataFrame(list(drug_likeness.items()), columns=["Property", "Value"])
+        st.table(df_drug)
+
+    # Toxicity Prediction
+    toxicity_data = predict_toxicity(st.session_state["smiles"])
+    if "Error" not in toxicity_data:
+        st.subheader("Toxicity Prediction")
+        df_toxicity = pd.DataFrame(list(toxicity_data.items()), columns=["Property", "Value"])
+        st.table(df_toxicity)
     else:
-        st.warning(pubchem_data["Error"])
+        st.warning(toxicity_data["Error"])
+
