@@ -91,7 +91,7 @@ if "xyz_content" not in st.session_state:
     st.session_state["xyz_content"] = None
 
 # Streamlit App
-st.title("SMILES Visualization, Drug-Likeness, and Toxicity Prediction")
+st.title("SMILES Visualization and Properties")
 
 # Default molecule (Phenol)
 default_smiles = "Oc1ccccc1"
