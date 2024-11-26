@@ -42,14 +42,6 @@ SMILES: `Oc1ccccc1` (Phenol)
 - [RDKit](https://www.rdkit.org/) - Toolkit for cheminformatics.
 - [py3Dmol](https://3dmol.csb.pitt.edu/) - Library for 3D molecular visualization.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute.
-
 ## Acknowledgments
 
 - [RDKit](https://www.rdkit.org/)
