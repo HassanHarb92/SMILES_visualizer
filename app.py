@@ -92,7 +92,8 @@ if "xyz_content" not in st.session_state:
 
 # Streamlit App
 st.title("SMILES Visualization and Properties")
-
+st.text("Hassan Harb")
+st.text("Last updated Dec 2, 2024")
 # Default molecule (Phenol)
 default_smiles = "Oc1ccccc1"
 smiles_input = st.text_input("Enter a SMILES string:", st.session_state.get("smiles", default_smiles))
