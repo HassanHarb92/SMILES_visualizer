@@ -203,14 +203,17 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
         df_drug["Value"] = df_drug["Value"].astype(str)  # Convert all values to strings
         st.table(df_drug)
 
-    # Toxicity Prediction
-    st.write("Toxicity predictions: coming soon")
-
 
     st.subheader("Pubchem Check")
     exists, message = check_molecule_in_pubchem(st.session_state["smiles"])
     if exists:
-        st.text(message)
+        st.write(message)
     else:
         st.error(message)
+
+
+    # Toxicity Prediction
+    st.subheader("Toxicity Prediciton")
+    st.write("coming soon")
+
 
