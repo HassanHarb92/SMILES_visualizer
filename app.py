@@ -210,9 +210,7 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
     st.subheader("Pubchem Check")
     exists, message = check_molecule_in_pubchem(st.session_state["smiles"])
     if exists:
-        st.success(message)
+        st.text(message)
     else:
         st.error(message)
-
-
 
