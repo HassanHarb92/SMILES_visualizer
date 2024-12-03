@@ -84,6 +84,36 @@ def predict_toxicity(smiles):
     except Exception as e:
         return {"Error": f"Failed to fetch toxicity data: {e}"}
 
+def check_molecule_in_pubchem(smiles):
+    """
+    Checks if a molecule exists in PubChem using its SMILES string.
+    
+    Args:
+        smiles (str): The SMILES string of the molecule.
+        
+    Returns:
+        bool: True if the molecule exists in PubChem, False otherwise.
+        str: Message describing the result.
+    """
+    try:
+        # Use the PUG REST API to search for the molecule in PubChem
+        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/cids/JSON"
+        response = requests.get(url)
+        response.raise_for_status()
+
+        # Parse the response JSON
+        data = response.json()
+        if "IdentifierList" in data and data["IdentifierList"].get("CID"):
+            return True, "Molecule found in PubChem."
+        else:
+            return False, "Molecule not found in PubChem."
+
+    except requests.exceptions.RequestException as e:
+        return False, f"API request failed: {e}"
+    except KeyError:
+        return False, "Unexpected API response format."
+
+
 # Initialize session state for SMILES and .xyz content
 if "smiles" not in st.session_state:
     st.session_state["smiles"] = ""
@@ -169,3 +199,14 @@ if st.session_state["smiles"] and st.session_state["xyz_content"]:
 
     # Toxicity Prediction
     st.write("Toxicity predictions: coming soon")
+
+
+    st.subheader("Pubchem Check")
+    exists, message = check_molecule_in_pubchem(st.session_state["smiles"])
+    if exists:
+        st.success(message)
+    else:
+        st.error(message)
+
+
+
