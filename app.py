@@ -65,6 +65,9 @@ def evaluate_drug_likeness(smiles):
     }
     return lipinski
 
+
+####### HH+ working
+
 # Function to fetch toxicity prediction from ProTox-II API
 def predict_toxicity(smiles):
     try:
@@ -84,27 +87,30 @@ def predict_toxicity(smiles):
     except Exception as e:
         return {"Error": f"Failed to fetch toxicity data: {e}"}
 
+####### HH- Working
+
 def check_molecule_in_pubchem(smiles):
     """
-    Checks if a molecule exists in PubChem using its SMILES string.
+    Checks if a molecule exists in PubChem using its SMILES string and retrieves its name.
     
     Args:
         smiles (str): The SMILES string of the molecule.
         
     Returns:
         bool: True if the molecule exists in PubChem, False otherwise.
-        str: Message describing the result.
+        str: A message or name of the molecule if found.
     """
     try:
         # Use the PUG REST API to search for the molecule in PubChem
-        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/cids/JSON"
+        url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{smiles}/property/IUPACName/JSON"
         response = requests.get(url)
         response.raise_for_status()
 
         # Parse the response JSON
         data = response.json()
-        if "IdentifierList" in data and data["IdentifierList"].get("CID"):
-            return True, "Molecule found in PubChem."
+        if "PropertyTable" in data and data["PropertyTable"]["Properties"]:
+            name = data["PropertyTable"]["Properties"][0].get("IUPACName", "Name not available")
+            return True, f"Molecule found in PubChem: {name}"
         else:
             return False, "Molecule not found in PubChem."
 
@@ -116,7 +122,7 @@ def check_molecule_in_pubchem(smiles):
 
 # Initialize session state for SMILES and .xyz content
 if "smiles" not in st.session_state:
-    st.session_state["smiles"] = ""
+    st.session_state["smiles"] = "CCCC"
 if "xyz_content" not in st.session_state:
     st.session_state["xyz_content"] = None
 
